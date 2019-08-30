@@ -72,24 +72,26 @@ vector<int> LinuxParser::Pids() {
 // TODO: Read and return the system memory utilization
 float LinuxParser::MemoryUtilization() { 
   // In my implementation, I will calculate:
+  // Total used memory = MemTotal - MemFree
   // Non cache/buffer memory (green) which equals Total used memory - (Buffers + Cached memory)
-  string line;
-  string key;
-  string value;
+  string MEMTOTAL = "MemTotal:";
+  string MEMFREE = "MemFree:";
+  string BUFFERS = "Buffers:";
+  string CACHED = "Cached:";
+  string key, value, line;
+  std::map<string, float> hash;
   
   std::ifstream filestream(kProcDirectory+kMeminfoFilename);
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {
       std::istringstream linestream(line);
       while (linestream >> key >> value) {
-        if (key == "PRETTY_NAME") {
-          std::replace(value.begin(), value.end(), '_', ' ');
-          return value;
-        }
+        hash[key] = std::stof(value);
       }
     }
   }
-  return value;
+  double mem_total_used = hash[MEMTOTAL] - hash[MEMFREE];
+  return (mem_total_used - (hash[BUFFERS] + hash[CACHED])) / hash[MEMTOTAL];
 }
 
 long LinuxParser::UpTime() { 
