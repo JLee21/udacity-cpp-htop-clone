@@ -1,14 +1,14 @@
 #include "processor.h"
 #include <string>
 #include "linux_parser.h"
-#include <iostream> // TODO: remove me
 
 using std::string;
 using namespace LinuxParser;
 
 float Processor::Utilization() { 
-  /* What we're parsing:
+  /* What we're parsing from /proc/stat
 	cpu  32057 13633 11500 707503 3672 0 443 0 0 0
+    
    	https://github.com/Leo-G/DevopsWiki/wiki/How-Linux-CPU-Usage-Time-and-Percentage-is-calculated
     
     TODO: instead of using ints for the map's keys, use a list of strings.
