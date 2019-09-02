@@ -47,6 +47,7 @@ long IdleJiffies();
 
 // Processes
 std::string Command(int pid);
+float CPUUsage(int pid);
 std::string Ram(int pid);
 std::string Uid(int pid);
 std::string User(std::string uid);

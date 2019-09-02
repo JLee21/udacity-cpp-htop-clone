@@ -40,7 +40,7 @@ float Processor::Utilization() {
      	tot_cpu_perct = (tot_cpu_usage_time - prev_usage) / (tot_cpu_time - prev_total);
     }
   
-  	// Cache previous results for the next calculdation
+  	// Cache previous results for the next calculation
   	prev_total = tot_cpu_time;
   	prev_usage = tot_cpu_usage_time;
   

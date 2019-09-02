@@ -16,15 +16,14 @@ using std::vector;
 
 Processor& System::Cpu() { return cpu_; }
 
-// TODO: Return a container composed of the system's processes
 vector<Process>& System::Processes() { 
   vector<int> pids = LinuxParser::Pids();
   vector<Process> processes = {};  
-  for(auto pid : pids){    
+  for(int pid : pids){
     Process p(pid);
     processes_.push_back(p);
   }
-  // maybe sort the processes here
+  // TODO: maybe sort the processes here based on the CPU Usage
   return processes_;
 }
 

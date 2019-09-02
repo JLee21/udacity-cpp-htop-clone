@@ -76,13 +76,8 @@ float LinuxParser::MemoryUtilization() {
   // In my implementation, I will calculate:
   // Total used memory = MemTotal - MemFree
   // Non cache/buffer memory (green) which equals Total used memory - (Buffers + Cached memory)
-  string MEMTOTAL = "MemTotal:";
-  string MEMFREE = "MemFree:";
-  string BUFFERS = "Buffers:";
-  string CACHED = "Cached:";
   string key, value, line;
   std::map<string, float> hash;
-  
   std::ifstream filestream(kProcDirectory+kMeminfoFilename);
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {
@@ -92,8 +87,8 @@ float LinuxParser::MemoryUtilization() {
       }
     }
   }
-  double mem_total_used = hash[MEMTOTAL] - hash[MEMFREE];
-  return (mem_total_used - (hash[BUFFERS] + hash[CACHED])) / hash[MEMTOTAL];
+  double mem_total_used = hash["MemTotal:"] - hash["MemFree:"];
+  return (mem_total_used - (hash["Buffers:"] + hash["Cached:"])) / hash["MemTotal:"];
 }
 
 long LinuxParser::UpTime() {
@@ -141,13 +136,12 @@ int LinuxParser::TotalProcesses() {
       }
     }
   }
+  return 0;
 }
 
 int LinuxParser::RunningProcesses() { 
   // Parse a file's line for this --> procs_running 1234
-  string line;
-  string key;
-  string value;
+  string line, key, value;
   std::ifstream filestream(kProcDirectory + kStatFilename);
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {
@@ -159,51 +153,74 @@ int LinuxParser::RunningProcesses() {
       }
     }
   }
+  return 0;
 }
 
 string LinuxParser::Command(int pid) { 
-  string line, cmd;
+  string line, line2, cmd = string();
   std::ifstream filestream(LinuxParser::kProcDirectory + to_string(pid) + LinuxParser::kCmdlineFilename);  
   if (filestream.is_open()) {
     // Example line: node^@./compute/node_modules/.bin/nodemon^@compute/main.js^@
-    // Example line: /bin/bash^@-x^@/usr/local/bin/start_desktop.sh^@
-    std::getline(filestream, line);
-    // but only returns "node" or "/bin/bash" and not the entire line
-    return line;
+    std::getline(filestream, line);  
   }
+  return line + line2;
+}
+
+float LinuxParser::CPUUsage(int pid){
+  // Help from here https://stackoverflow.com/questions/16726779/how-do-i-get-the-total-cpu-usage-of-an-application-from-proc-pid-stat/16736599#16736599
+  const int MAX_INDEX = 22;
+  string line, val;
+  std::map<int, float> vals;
+  std::ifstream filestream(kProcDirectory + to_string(pid) + kStatFilename);  
+  if (filestream.is_open()) {
+    std::getline(filestream, line); 
+    std::istringstream linestream(line);
+    for(int i=1; i<=MAX_INDEX; i++){
+      linestream >> val;
+      // ignore early values b/c some are string values and not numbers
+      if(i < 14)
+      	continue;
+      vals[i] = std::stof(val);
+    }
+  }
+  float tot_time_spent = vals[14] + vals[15] + vals[16] + vals[17];
+  float seconds = UpTime() - UpTime(pid);
+  return 100 * ((tot_time_spent / sysconf(_SC_CLK_TCK)) / seconds);
 }
 
 string LinuxParser::Ram(int pid) {
-  string line, key, val;
+  string line, key, val, result = string();
   std::ifstream filestream(kProcDirectory + std::to_string(pid) + kStatusFilename);  
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {
       std::istringstream linestream(line);
       linestream >> key >> val;
       if(key == "VmSize:")
-		return val;
+		result = val;
     }
-  }		
+  }
+  return result;
 }
 
 string LinuxParser::Uid(int pid) { 
-  string line, key, uid_str;
+  string line, key, uid_str, result = string();
   std::ifstream filestream(kProcDirectory + std::to_string(pid) + kStatusFilename);  
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {
       std::istringstream linestream(line);
       linestream >> key >> uid_str;
       if(key == "Uid:")
-		return uid_str;
+		result = uid_str;
     }
   }	
+  return result;
 }
 
 string LinuxParser::User(string uid) {
   // Help from http://www.cplusplus.com/reference/cstdio/sscanf/?kw=sscanf
   // Help on string C-string conversion https://www.geeksforgeeks.org/how-to-convert-c-style-strings-to-stdstring-and-vice-versa/
   // Search within /etc/passwd for a line like this --> david:x:1000:1000:David Silver
-  string line, s;
+  string line, s, result = string();
   const char delim = ':';
   vector<string> vals = {"", "", ""};
   std::ifstream filestream_pswd(LinuxParser::kPasswordPath);
@@ -217,13 +234,11 @@ string LinuxParser::User(string uid) {
           getline(ss, s, delim);
           vals[i] = s;
       }
-      if(vals[2] == uid){
-		return vals[0];
-      } else{
-       return "unknown"; 
-      }
+      if(vals[2] == uid)
+		result = vals[0];
     }
   }
+  return result;
 }
 
 long LinuxParser::UpTime(int pid) { 
@@ -237,12 +252,15 @@ long LinuxParser::UpTime(int pid) {
   const int INDEX = 22;
   string line, val;
   std::ifstream filestream(kProcDirectory + to_string(pid) + kStatFilename);  
-  if (filestream.is_open()) {
+  if (filestream.is_open()) { 
     std::getline(filestream, line); 
     std::istringstream linestream(line);
     for(int i=1; i<=INDEX; i++){
+      if(i<INDEX) 
+        continue;
       linestream >> val;
     }
 	return std::stof(val) / sysconf(_SC_CLK_TCK);
   }
+  return 0;
 }
