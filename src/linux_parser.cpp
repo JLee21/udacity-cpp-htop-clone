@@ -71,7 +71,6 @@ vector<int> LinuxParser::Pids() {
   return pids;
 }
 
-// TODO: Read and return the system memory utilization
 float LinuxParser::MemoryUtilization() { 
   // In my implementation, I will calculate:
   // Total used memory = MemTotal - MemFree
@@ -105,19 +104,6 @@ long LinuxParser::UpTime() {
   // or use stof from std lib
    return std::stof(uptime);
 }
-
-// TODO: Read and return the number of jiffies for the system
-long LinuxParser::Jiffies() { return 0; }
-
-// TODO: Read and return the number of active jiffies for a PID
-// REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::ActiveJiffies(int pid[[maybe_unused]]) { return 0; }
-
-// TODO: Read and return the number of active jiffies for the system
-long LinuxParser::ActiveJiffies() { return 0; }
-
-// TODO: Read and return the number of idle jiffies for the system
-long LinuxParser::IdleJiffies() { return 0; }
 
 int LinuxParser::TotalProcesses() { 
   // IMPROVEMENT: abstract this funtion since it is similar to TotalProcesses and RunningProcesses
@@ -260,7 +246,7 @@ long LinuxParser::UpTime(int pid) {
         continue;
       linestream >> val;
     }
-	return std::stof(val) / sysconf(_SC_CLK_TCK);
+	  return std::stof(val) / sysconf(_SC_CLK_TCK);
   }
   return 0;
 }

@@ -31,7 +31,7 @@ float Processor::Utilization() {
   	for (int i=0; i <= 7; i++){
       tot_cpu_time += hash[i];
     }
- 	float tot_cpu_idle_time = hash[3] + hash[4];
+ 	  float tot_cpu_idle_time = hash[3] + hash[4];
   	float tot_cpu_usage_time = tot_cpu_time - tot_cpu_idle_time;
   	float tot_cpu_perct = tot_cpu_usage_time / tot_cpu_time;
   
