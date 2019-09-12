@@ -24,7 +24,7 @@ string Process::Command() { return LinuxParser::Command(id_); }
 string Process::Ram() {
   char mb_str [10];
   string ram_str = LinuxParser::Ram(id_);
-  sprintf(mb_str, "%6.1f", std::stof(ram_str) / 1e3); // assuming ram_str is always in KB
+  sprintf(mb_str, "%6.0f", std::stof(ram_str) / 1e3); // assuming ram_str is always in KB
   return mb_str;
 }
 

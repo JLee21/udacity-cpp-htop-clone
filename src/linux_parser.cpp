@@ -226,9 +226,7 @@ string LinuxParser::User(string uid) {
 long LinuxParser::UpTime(int pid) { 
   // The index of the element to get within /proc/<pid>/stat according to http://man7.org/linux/man-pages/man5/proc.5.html
   /* Example line for a process: 
-  1 (sh) S 0 1 1 0 -1 4194560 671 325636 9 375 4 0 641 175 20 0 1 0 2238 4612096 174 18446744073709551615 94845009035264 94845009179164 1407
-  31133395840 0 0 0 0 0 65538 1 0 0 17 2 0 0 7 0 0 94845011279720 94845011284512 94845044293632 140731133398418 140731133398461 140731133398
-  461 140731133399024 0
+  1 (sh) S 0 1 1 0 -1 4194560 671 325636 9 375 4 0 641 175 20 0 1 0 2238 4612096 174 18446744073709551615 ... and so on
   */
   const int INDEX = 22;
   string line, val;
@@ -241,7 +239,9 @@ long LinuxParser::UpTime(int pid) {
         continue;
       linestream >> val;
     }
-	  return std::stof(val) / sysconf(_SC_CLK_TCK);
+    // TODO: this is not accurate: we are only parsing the starttime of the process
+    // and not the total runtime of the process.
+    return std::stof(val) / sysconf(_SC_CLK_TCK);
   }
-  return 0;
+  return 1;
 }
