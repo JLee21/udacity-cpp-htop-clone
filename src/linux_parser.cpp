@@ -228,20 +228,29 @@ long LinuxParser::UpTime(int pid) {
   /* Example line for a process: 
   1 (sh) S 0 1 1 0 -1 4194560 671 325636 9 375 4 0 641 175 20 0 1 0 2238 4612096 174 18446744073709551615 ... and so on
   */
-  const int INDEX = 22;
+  const int MIN_INDEX = 14, MAX_INDEX = 22;
   string line, val;
+  std::map<int, double> hash;
   std::ifstream filestream(kProcDirectory + to_string(pid) + kStatFilename);  
   if (filestream.is_open()) { 
     std::getline(filestream, line); 
     std::istringstream linestream(line);
-    for(int i=1; i<=INDEX; i++){
-      if(i<INDEX) 
-        continue;
+    // Is there an ideal way to iterate through linestream? Maybe using a linstream "seek"?
+    for(int i=1; i<MIN_INDEX; i++) linestream >> val;
+    for(int i=MIN_INDEX; i<=MAX_INDEX; i++){
       linestream >> val;
+      hash[i] = std::stof(val);        
     }
-    // TODO: this is not accurate: we are only parsing the starttime of the process
-    // and not the total runtime of the process.
-    return std::stof(val) / sysconf(_SC_CLK_TCK);
+    /* 
+    NOTE: I believe the instructions in the lessons are not accurate:
+    instructions were to only grab the starttime of the process, which means
+    how much time elapsed since boottime.
+    That does not equate to how much time a process has been running/waiting.
+	So, what I have done is add up all the scheduled run time of the process
+    and divide it by system clock ticks to get the desried process uptime.
+    (utime + stime + cutime + cstime) / sysconf(_SC_CLK_TCK)
+    */
+    return (hash[14] + hash[15] + hash[16] + hash[17]) / sysconf(_SC_CLK_TCK);
   }
-  return 1;
+  return 0;
 }
