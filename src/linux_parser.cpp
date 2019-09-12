@@ -50,7 +50,6 @@ string LinuxParser::Kernel() {
   return kernel;
 }
 
-// BONUS: Update this to use std::filesystem
 // return a vector of ints that denote all of the PIDs
 vector<int> LinuxParser::Pids() {
   vector<int> pids;
@@ -91,7 +90,7 @@ float LinuxParser::MemoryUtilization() {
 }
 
 long LinuxParser::UpTime() {
-  // System Uptime
+  // System Uptime (as opposed to Process Time)
   string uptime, idletime, line;
   std::ifstream stream(kProcDirectory + kUptimeFilename);
   if (stream.is_open()) {
@@ -99,10 +98,7 @@ long LinuxParser::UpTime() {
     std::istringstream linestream(line);
     linestream >> uptime >> idletime;
   }
-  // how to convert a string to a number (long)?
-  // kernelhttps://www.geeksforgeeks.org/converting-strings-numbers-cc/
-  // or use stof from std lib
-   return std::stof(uptime);
+  return std::stof(uptime);
 }
 
 int LinuxParser::TotalProcesses() { 
@@ -203,9 +199,9 @@ string LinuxParser::Uid(int pid) {
 }
 
 string LinuxParser::User(string uid) {
+  // Search within /etc/passwd for a line like this --> david:x:1000:1000:David Silver
   // Help from http://www.cplusplus.com/reference/cstdio/sscanf/?kw=sscanf
   // Help on string C-string conversion https://www.geeksforgeeks.org/how-to-convert-c-style-strings-to-stdstring-and-vice-versa/
-  // Search within /etc/passwd for a line like this --> david:x:1000:1000:David Silver
   string line, s, result = string();
   const char delim = ':';
   vector<string> vals = {"", "", ""};
@@ -228,13 +224,12 @@ string LinuxParser::User(string uid) {
 }
 
 long LinuxParser::UpTime(int pid) { 
+  // The index of the element to get within /proc/<pid>/stat according to http://man7.org/linux/man-pages/man5/proc.5.html
   /* Example line for a process: 
   1 (sh) S 0 1 1 0 -1 4194560 671 325636 9 375 4 0 641 175 20 0 1 0 2238 4612096 174 18446744073709551615 94845009035264 94845009179164 1407
   31133395840 0 0 0 0 0 65538 1 0 0 17 2 0 0 7 0 0 94845011279720 94845011284512 94845044293632 140731133398418 140731133398461 140731133398
   461 140731133399024 0
   */
-  
-  // The index of the element to get within /proc/<pid>/stat according to http://man7.org/linux/man-pages/man5/proc.5.html
   const int INDEX = 22;
   string line, val;
   std::ifstream filestream(kProcDirectory + to_string(pid) + kStatFilename);  

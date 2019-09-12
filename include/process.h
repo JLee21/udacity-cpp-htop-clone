@@ -8,7 +8,7 @@ It contains relevant attributes as shown below
 */
 class Process {
  public:
-  Process(int id) : id_(id) {};
+  Process(int id) : id_(id){};
   int Pid();                               // TODO: See src/process.cpp
   std::string User();                      // TODO: See src/process.cpp
   std::string Command();                   // TODO: See src/process.cpp
@@ -18,7 +18,7 @@ class Process {
   bool operator<(Process const& a) const;  // TODO: See src/process.cpp
 
  private:
-	int id_;
+  int id_;
 };
 
 #endif

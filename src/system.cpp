@@ -4,10 +4,10 @@
 #include <string>
 #include <vector>
 
+#include "linux_parser.h"
 #include "process.h"
 #include "processor.h"
 #include "system.h"
-#include "linux_parser.h"
 
 using std::set;
 using std::size_t;
@@ -16,14 +16,14 @@ using std::vector;
 
 Processor& System::Cpu() { return cpu_; }
 
-vector<Process>& System::Processes() { 
+vector<Process>& System::Processes() {
   vector<int> pids = LinuxParser::Pids();
-  vector<Process> processes = {};  
-  for(int pid : pids){
+  vector<Process> processes = {};
+  for (int pid : pids) {
     Process p(pid);
     processes_.push_back(p);
   }
-  // TODO: maybe sort the processes here based on the CPU Usage
+  // TODO: sort the processes here based on the CPU Usage
   return processes_;
 }
 
@@ -31,7 +31,7 @@ std::string System::Kernel() { return LinuxParser::Kernel(); }
 
 float System::MemoryUtilization() { return LinuxParser::MemoryUtilization(); }
 
-std::string System::OperatingSystem() { return LinuxParser::OperatingSystem();}
+std::string System::OperatingSystem() { return LinuxParser::OperatingSystem(); }
 
 int System::RunningProcesses() { return LinuxParser::RunningProcesses(); }
 
