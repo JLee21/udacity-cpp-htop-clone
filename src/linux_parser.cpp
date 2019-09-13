@@ -7,6 +7,8 @@
 #include <unistd.h>
 
 #include "linux_parser.h"
+#define printVariableNameAndValue(x) cout<<"name**"<<(#x)<<"** value => "<<x<<"\n"
+
 
 using std::stof;
 using std::string;
@@ -34,6 +36,7 @@ string LinuxParser::OperatingSystem() {
         }
       }
     }
+    filestream.close();
   }
   return value;
 }
@@ -41,11 +44,12 @@ string LinuxParser::OperatingSystem() {
 string LinuxParser::Kernel() {
   string os, kernel, version;
   string line;
-  std::ifstream stream(kProcDirectory + kVersionFilename);
-  if (stream.is_open()) {
-    std::getline(stream, line);
+  std::ifstream filestream(kProcDirectory + kVersionFilename);
+  if (filestream.is_open()) {
+    std::getline(filestream, line);
     std::istringstream linestream(line);
     linestream >> os >> version >> kernel;
+    filestream.close();
   }
   return kernel;
 }
@@ -84,25 +88,27 @@ float LinuxParser::MemoryUtilization() {
         hash[key] = std::stof(value);
       }
     }
+    filestream.close();
   }
-  double mem_total_used = hash["MemTotal:"] - hash["MemFree:"];
-  return (mem_total_used - (hash["Buffers:"] + hash["Cached:"])) / hash["MemTotal:"];
+  double memTotalUsed = hash["MemTotal:"] - hash["MemFree:"];
+  return (memTotalUsed - (hash["Buffers:"] + hash["Cached:"])) / hash["MemTotal:"];
 }
 
 long LinuxParser::UpTime() {
   // System Uptime (as opposed to Process Time)
   string uptime, idletime, line;
-  std::ifstream stream(kProcDirectory + kUptimeFilename);
-  if (stream.is_open()) {
-    std::getline(stream, line);
+  std::ifstream filestream(kProcDirectory + kUptimeFilename);
+  if (filestream.is_open()) {
+    std::getline(filestream, line);
     std::istringstream linestream(line);
     linestream >> uptime >> idletime;
+    filestream.close();
   }
-  return std::stof(uptime);
+  return std::stol(uptime);
 }
 
 int LinuxParser::TotalProcesses() { 
-  // IMPROVEMENT: abstract this funtion since it is similar to TotalProcesses and RunningProcesses
+  // TODO: abstract this funtion since it is similar to TotalProcesses and RunningProcesses
   // Parse a file's line for this --> processes 1234
   string line;
   string key;
@@ -117,6 +123,7 @@ int LinuxParser::TotalProcesses() {
         }
       }
     }
+    filestream.close();
   }
   return 0;
 }
@@ -134,6 +141,7 @@ int LinuxParser::RunningProcesses() {
         }
       }
     }
+    filestream.close();
   }
   return 0;
 }
@@ -150,24 +158,22 @@ string LinuxParser::Command(int pid) {
 
 float LinuxParser::CPUUsage(int pid){
   // Help from here https://stackoverflow.com/questions/16726779/how-do-i-get-the-total-cpu-usage-of-an-application-from-proc-pid-stat/16736599#16736599
-  const int MAX_INDEX = 22;
+  const int MIN_INDEX = 14, MAX_INDEX = 17;
   string line, val;
   std::map<int, float> vals;
   std::ifstream filestream(kProcDirectory + to_string(pid) + kStatFilename);  
   if (filestream.is_open()) {
     std::getline(filestream, line); 
     std::istringstream linestream(line);
-    for(int i=1; i<=MAX_INDEX; i++){
+    for(int i=1; i<MIN_INDEX; i++) linestream >> val; // skip the first MIN_INDEX elements
+    for(int i=MIN_INDEX; i<=MAX_INDEX; i++){
       linestream >> val;
-      // ignore early values b/c some are string values and not numbers
-      if(i < 14)
-      	continue;
       vals[i] = std::stof(val);
     }
   }
-  float tot_time_spent = vals[14] + vals[15] + vals[16] + vals[17];
+  float totTimeSpent = vals[14] + vals[15] + vals[16] + vals[17];
   float seconds = UpTime() - UpTime(pid);
-  return 100 * ((tot_time_spent / sysconf(_SC_CLK_TCK)) / seconds);
+  return ((totTimeSpent / sysconf(_SC_CLK_TCK)) / seconds);
 }
 
 string LinuxParser::Ram(int pid) {

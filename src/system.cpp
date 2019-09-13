@@ -21,9 +21,13 @@ vector<Process>& System::Processes() {
   vector<Process> processes = {};
   for (int pid : pids) {
     Process p(pid);
-    processes_.push_back(p);
+    processes_.emplace_back(p);
   }
-  // TODO: sort the processes here based on the CPU Usage
+  // FIXME: this sort seems to erroneosly duplicate Processes
+  // sort the processes here based on the CPU Usage
+  // According to https://en.cppreference.com/w/cpp/algorithm/sort
+  // std::sort is made using the operator <
+//   std::sort(processes_.begin(), processes_.end());
   return processes_;
 }
 

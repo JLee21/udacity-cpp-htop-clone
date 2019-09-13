@@ -15,16 +15,20 @@ using namespace std;
 
 int Process::Pid() { return id_; }
 
-float Process::CpuUtilization() { 
+float Process::CpuUtilization() const { 
   return LinuxParser::CPUUsage(id_);
 }
 
-string Process::Command() { return LinuxParser::Command(id_); }
+string Process::Command() { 
+  // constrain returned string to be less than 50 charaters 
+  string cmd = LinuxParser::Command(id_);
+  return cmd.size() > 50 ? cmd.substr(0, 50) + "..." : cmd;
+}
 
 string Process::Ram() {
   char mb_str [10];
   string ram_str = LinuxParser::Ram(id_);
-  sprintf(mb_str, "%6.0f", std::stof(ram_str) / 1e3); // assuming ram_str is always in KB
+  sprintf(mb_str, "%6.0f", std::stof(ram_str) / 1024); // assuming ram_str is always in KB
   return mb_str;
 }
 
@@ -35,6 +39,12 @@ string Process::User() {
 
 long int Process::UpTime() { return LinuxParser::UpTime(id_); }
 
-// TODO: Overload the "less than" comparison operator for Process objects
-// REMOVE: [[maybe_unused]] once you define the function
-bool Process::operator<(Process const& a[[maybe_unused]]) const { return true; }
+// Less than operator
+bool Process::operator<(const Process& a) const {
+  return CpuUtilization() < a.CpuUtilization();
+}
+
+// Greater than operator
+bool Process::operator>(const Process& a) const {
+  return CpuUtilization() > a.CpuUtilization();
+}
