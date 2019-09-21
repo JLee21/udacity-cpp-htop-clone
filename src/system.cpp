@@ -27,7 +27,7 @@ vector<Process>& System::Processes() {
   // sort the processes here based on the CPU Usage
   // According to https://en.cppreference.com/w/cpp/algorithm/sort
   // std::sort is made using the operator <
-//   std::sort(processes_.begin(), processes_.end());
+  //   std::sort(processes_.begin(), processes_.end());
   return processes_;
 }
 
